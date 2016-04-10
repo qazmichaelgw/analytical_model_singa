@@ -1,0 +1,640 @@
+Log file created at: 2016/04/09 14:20:19
+Running on machine: singa2
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+E0409 14:20:19.860745  1643 cluster.cc:50] proc #0 -> localhost:0 (pid = 1643)
+I0409 14:20:19.861420  1643 neuralnet.cc:127] Initial NeuralNet Config is
+layer {
+  name: "0#data"
+  include: kTrain
+  type: kRecordInput
+  unroll_index: 0
+  partition_dim: 0
+  store_conf {
+    backend: "kvfile"
+    path: "examples/cifar10/train_data.bin"
+    mean_file: "examples/cifar10/image_mean.bin"
+    batchsize: 100
+    shape: 3
+    shape: 32
+    shape: 32
+  }
+}
+layer {
+  name: "0#conv1"
+  srclayers: "0#data"
+  param {
+    name: "0#w1"
+    init {
+      type: kGaussian
+      std: 0.0001
+    }
+  }
+  param {
+    name: "0#b1"
+    init {
+      type: kConstant
+      value: 0
+    }
+    lr_scale: 2
+    wd_scale: 0
+  }
+  type: kCudnnConv
+  unroll_index: 0
+  partition_dim: 0
+  convolution_conf {
+    num_filters: 32
+    kernel: 5
+    pad: 2
+    stride: 1
+  }
+}
+layer {
+  name: "0#pool1"
+  srclayers: "0#conv1"
+  type: kCudnnPool
+  unroll_index: 0
+  partition_dim: 0
+  pooling_conf {
+    kernel: 3
+    pool: MAX
+    stride: 2
+  }
+}
+layer {
+  name: "0#relu1"
+  srclayers: "0#pool1"
+  type: kCudnnActivation
+  share_src_blobs: true
+  unroll_index: 0
+  partition_dim: 0
+  activation_conf {
+    type: RELU
+  }
+}
+layer {
+  name: "0#norm1"
+  srclayers: "0#relu1"
+  type: kCudnnLRN
+  unroll_index: 0
+  partition_dim: 0
+  lrn_conf {
+    local_size: 3
+    alpha: 5e-05
+    beta: 0.75
+  }
+}
+layer {
+  name: "0#conv2"
+  srclayers: "0#norm1"
+  param {
+    name: "0#w2"
+    init {
+      type: kGaussian
+      std: 0.01
+    }
+  }
+  param {
+    name: "0#b2"
+    init {
+      type: kConstant
+      value: 0
+    }
+    lr_scale: 2
+    wd_scale: 0
+  }
+  type: kCudnnConv
+  unroll_index: 0
+  partition_dim: 0
+  convolution_conf {
+    num_filters: 32
+    kernel: 5
+    pad: 2
+    stride: 1
+  }
+}
+layer {
+  name: "0#relu2"
+  srclayers: "0#conv2"
+  type: kCudnnActivation
+  share_src_blobs: true
+  unroll_index: 0
+  partition_dim: 0
+  activation_conf {
+    type: RELU
+  }
+}
+layer {
+  name: "0#pool2"
+  srclayers: "0#relu2"
+  type: kCudnnPool
+  unroll_index: 0
+  partition_dim: 0
+  pooling_conf {
+    kernel: 3
+    pool: AVG
+    stride: 2
+  }
+}
+layer {
+  name: "0#norm2"
+  srclayers: "0#pool2"
+  type: kCudnnLRN
+  unroll_index: 0
+  partition_dim: 0
+  lrn_conf {
+    local_size: 3
+    alpha: 5e-05
+    beta: 0.75
+  }
+}
+layer {
+  name: "0#conv3"
+  srclayers: "0#norm2"
+  param {
+    name: "0#w3"
+    init {
+      type: kGaussian
+      std: 0.01
+    }
+  }
+  param {
+    name: "0#b3"
+    init {
+      type: kConstant
+      value: 0
+    }
+    lr_scale: 2
+    wd_scale: 0
+  }
+  type: kCudnnConv
+  unroll_index: 0
+  partition_dim: 0
+  convolution_conf {
+    num_filters: 64
+    kernel: 5
+    pad: 2
+    stride: 1
+  }
+}
+layer {
+  name: "0#relu3"
+  srclayers: "0#conv3"
+  type: kCudnnActivation
+  share_src_blobs: true
+  unroll_index: 0
+  partition_dim: 0
+  activation_conf {
+    type: RELU
+  }
+}
+layer {
+  name: "0#pool3"
+  srclayers: "0#relu3"
+  type: kCudnnPool
+  unroll_index: 0
+  partition_dim: 0
+  pooling_conf {
+    kernel: 3
+    pool: AVG
+    stride: 2
+  }
+}
+layer {
+  name: "0#ip1"
+  srclayers: "0#pool3"
+  param {
+    name: "0#w4"
+    init {
+      type: kGaussian
+      std: 0.01
+    }
+    wd_scale: 250
+  }
+  param {
+    name: "0#b4"
+    init {
+      type: kConstant
+      value: 0
+    }
+    lr_scale: 2
+    wd_scale: 0
+  }
+  type: kInnerProduct
+  unroll_index: 0
+  partition_dim: 0
+  innerproduct_conf {
+    num_output: 10
+  }
+}
+layer {
+  name: "0#loss"
+  srclayers: "0#ip1"
+  srclayers: "0#data"
+  include: kTrain
+  type: kSoftmaxLoss
+  unroll_index: 0
+  partition_dim: 0
+}
+I0409 14:20:19.861449  1643 neuralnet.cc:223] Constructing NeuralNet...
+I0409 14:20:19.861634  1643 neuralnet.cc:548] constructing graph: 0#data@0
+I0409 14:20:19.861654  1643 neuralnet.cc:551] constructing graph: 0#data@0
+I0409 14:20:19.861668  1643 neuralnet.cc:548] constructing graph: 0#conv1@0
+I0409 14:20:19.861690  1643 neuralnet.cc:551] constructing graph: 0#conv1@0
+I0409 14:20:19.861701  1643 neuralnet.cc:548] constructing graph: 0#pool1@0
+I0409 14:20:19.861711  1643 neuralnet.cc:551] constructing graph: 0#pool1@0
+I0409 14:20:19.861718  1643 neuralnet.cc:548] constructing graph: 0#relu1@0
+I0409 14:20:19.861727  1643 neuralnet.cc:551] constructing graph: 0#relu1@0
+I0409 14:20:19.861750  1643 neuralnet.cc:548] constructing graph: 0#norm1@0
+I0409 14:20:19.861759  1643 neuralnet.cc:551] constructing graph: 0#norm1@0
+I0409 14:20:19.861766  1643 neuralnet.cc:548] constructing graph: 0#conv2@0
+I0409 14:20:19.861778  1643 neuralnet.cc:551] constructing graph: 0#conv2@0
+I0409 14:20:19.861784  1643 neuralnet.cc:548] constructing graph: 0#relu2@0
+I0409 14:20:19.861790  1643 neuralnet.cc:551] constructing graph: 0#relu2@0
+I0409 14:20:19.861798  1643 neuralnet.cc:548] constructing graph: 0#pool2@0
+I0409 14:20:19.861802  1643 neuralnet.cc:551] constructing graph: 0#pool2@0
+I0409 14:20:19.861809  1643 neuralnet.cc:548] constructing graph: 0#norm2@0
+I0409 14:20:19.861814  1643 neuralnet.cc:551] constructing graph: 0#norm2@0
+I0409 14:20:19.861821  1643 neuralnet.cc:548] constructing graph: 0#conv3@0
+I0409 14:20:19.861830  1643 neuralnet.cc:551] constructing graph: 0#conv3@0
+I0409 14:20:19.861838  1643 neuralnet.cc:548] constructing graph: 0#relu3@0
+I0409 14:20:19.861843  1643 neuralnet.cc:551] constructing graph: 0#relu3@0
+I0409 14:20:19.861850  1643 neuralnet.cc:548] constructing graph: 0#pool3@0
+I0409 14:20:19.861855  1643 neuralnet.cc:551] constructing graph: 0#pool3@0
+I0409 14:20:19.861860  1643 neuralnet.cc:548] constructing graph: 0#ip1@0
+I0409 14:20:19.861868  1643 neuralnet.cc:551] constructing graph: 0#ip1@0
+I0409 14:20:19.861876  1643 neuralnet.cc:548] constructing graph: 0#loss@0
+I0409 14:20:19.861881  1643 neuralnet.cc:551] constructing graph: 0#loss@0
+I0409 14:20:19.861925  1643 neuralnet.cc:231] NeuralNet Constructed
+I0409 14:20:19.862236  1643 param.cc:147] param id 0 owner=0, slice id = 0, size = 2400
+I0409 14:20:19.862246  1643 param.cc:147] param id 1 owner=1, slice id = 1, size = 32
+I0409 14:20:19.862251  1643 param.cc:147] param id 2 owner=2, slice id = 2, size = 25600
+I0409 14:20:19.862254  1643 param.cc:147] param id 3 owner=3, slice id = 3, size = 32
+I0409 14:20:19.862258  1643 param.cc:147] param id 4 owner=4, slice id = 4, size = 51200
+I0409 14:20:19.862262  1643 param.cc:147] param id 5 owner=5, slice id = 5, size = 64
+I0409 14:20:19.862267  1643 param.cc:147] param id 6 owner=6, slice id = 6, size = 5760
+I0409 14:20:19.862272  1643 param.cc:147] param id 7 owner=7, slice id = 7, size = 10
+I0409 14:20:19.862462  1643 stub.cc:99] Stub in process 0 starts
+E0409 14:20:19.862516  1673 server.cc:64] Server (group = 0, id = 0) start
+E0409 14:20:20.862520  1674 worker.cc:79] Worker (group = 0, id = 0)  start on GPU 0
+I0409 14:20:22.028784  1673 server.cc:150] server (group = 0, id = 0) put slice=0 size=2400
+I0409 14:20:22.028801  1673 server.cc:150] server (group = 0, id = 0) put slice=1 size=32
+I0409 14:20:22.028806  1673 server.cc:150] server (group = 0, id = 0) put slice=2 size=25600
+I0409 14:20:22.028810  1673 server.cc:150] server (group = 0, id = 0) put slice=3 size=32
+I0409 14:20:22.028815  1673 server.cc:150] server (group = 0, id = 0) put slice=4 size=51200
+I0409 14:20:22.028818  1673 server.cc:150] server (group = 0, id = 0) put slice=5 size=64
+I0409 14:20:22.028822  1673 server.cc:150] server (group = 0, id = 0) put slice=6 size=5760
+I0409 14:20:22.028826  1673 server.cc:150] server (group = 0, id = 0) put slice=7 size=10
+E0409 14:20:23.383798  1674 worker.cc:361] Train @ step 0  Loss = 2.302473, accuracy = 0.100000
+E0409 14:20:25.609168  1674 worker.cc:361] Train @ step 200  Loss = 2.143603, accuracy = 0.201150
+E0409 14:20:27.821972  1674 worker.cc:361] Train @ step 400  Loss = 1.774486, accuracy = 0.347100
+E0409 14:20:30.032960  1674 worker.cc:361] Train @ step 600  Loss = 1.627222, accuracy = 0.404650
+E0409 14:20:32.244313  1674 worker.cc:361] Train @ step 800  Loss = 1.531596, accuracy = 0.443450
+E0409 14:20:34.460170  1674 worker.cc:361] Train @ step 1000  Loss = 1.483400, accuracy = 0.465700
+E0409 14:20:36.683028  1674 worker.cc:361] Train @ step 1200  Loss = 1.406603, accuracy = 0.497650
+E0409 14:20:38.908346  1674 worker.cc:361] Train @ step 1400  Loss = 1.351429, accuracy = 0.519900
+E0409 14:20:41.133481  1674 worker.cc:361] Train @ step 1600  Loss = 1.310616, accuracy = 0.533500
+E0409 14:20:43.357029  1674 worker.cc:361] Train @ step 1800  Loss = 1.266336, accuracy = 0.552700
+E0409 14:20:45.583241  1674 worker.cc:361] Train @ step 2000  Loss = 1.236014, accuracy = 0.566700
+E0409 14:20:47.806800  1674 worker.cc:361] Train @ step 2200  Loss = 1.214123, accuracy = 0.569100
+E0409 14:20:50.032546  1674 worker.cc:361] Train @ step 2400  Loss = 1.166529, accuracy = 0.589950
+E0409 14:20:52.257213  1674 worker.cc:361] Train @ step 2600  Loss = 1.149219, accuracy = 0.595450
+E0409 14:20:54.482224  1674 worker.cc:361] Train @ step 2800  Loss = 1.128521, accuracy = 0.603500
+E0409 14:20:56.709287  1674 worker.cc:361] Train @ step 3000  Loss = 1.106678, accuracy = 0.611500
+E0409 14:20:58.932991  1674 worker.cc:361] Train @ step 3200  Loss = 1.100034, accuracy = 0.614100
+E0409 14:21:01.158465  1674 worker.cc:361] Train @ step 3400  Loss = 1.066768, accuracy = 0.629450
+E0409 14:21:03.382906  1674 worker.cc:361] Train @ step 3600  Loss = 1.049655, accuracy = 0.628950
+E0409 14:21:05.608382  1674 worker.cc:361] Train @ step 3800  Loss = 1.040470, accuracy = 0.638800
+E0409 14:21:07.835407  1674 worker.cc:361] Train @ step 4000  Loss = 1.025138, accuracy = 0.643050
+E0409 14:21:10.059202  1674 worker.cc:361] Train @ step 4200  Loss = 1.017409, accuracy = 0.644200
+E0409 14:21:12.286736  1674 worker.cc:361] Train @ step 4400  Loss = 0.995000, accuracy = 0.654050
+E0409 14:21:14.521342  1674 worker.cc:361] Train @ step 4600  Loss = 0.974971, accuracy = 0.657850
+E0409 14:21:16.756366  1674 worker.cc:361] Train @ step 4800  Loss = 0.970643, accuracy = 0.664400
+E0409 14:21:18.992168  1674 worker.cc:361] Train @ step 5000  Loss = 0.959737, accuracy = 0.665900
+E0409 14:21:21.224958  1674 worker.cc:361] Train @ step 5200  Loss = 0.949415, accuracy = 0.668850
+E0409 14:21:23.459450  1674 worker.cc:361] Train @ step 5400  Loss = 0.932455, accuracy = 0.678600
+E0409 14:21:25.693145  1674 worker.cc:361] Train @ step 5600  Loss = 0.912119, accuracy = 0.681550
+E0409 14:21:27.927523  1674 worker.cc:361] Train @ step 5800  Loss = 0.914183, accuracy = 0.683750
+E0409 14:21:30.163771  1674 worker.cc:361] Train @ step 6000  Loss = 0.902803, accuracy = 0.686550
+E0409 14:21:32.397222  1674 worker.cc:361] Train @ step 6200  Loss = 0.892706, accuracy = 0.687150
+E0409 14:21:34.632134  1674 worker.cc:361] Train @ step 6400  Loss = 0.882219, accuracy = 0.695400
+E0409 14:21:36.865890  1674 worker.cc:361] Train @ step 6600  Loss = 0.859750, accuracy = 0.702400
+E0409 14:21:39.100819  1674 worker.cc:361] Train @ step 6800  Loss = 0.867210, accuracy = 0.700600
+E0409 14:21:41.337265  1674 worker.cc:361] Train @ step 7000  Loss = 0.856083, accuracy = 0.703700
+E0409 14:21:43.570219  1674 worker.cc:361] Train @ step 7200  Loss = 0.848555, accuracy = 0.704600
+E0409 14:21:45.804922  1674 worker.cc:361] Train @ step 7400  Loss = 0.840646, accuracy = 0.709900
+E0409 14:21:48.039942  1674 worker.cc:361] Train @ step 7600  Loss = 0.818575, accuracy = 0.716250
+E0409 14:21:50.274994  1674 worker.cc:361] Train @ step 7800  Loss = 0.828900, accuracy = 0.713750
+E0409 14:21:52.511358  1674 worker.cc:361] Train @ step 8000  Loss = 0.817432, accuracy = 0.719400
+E0409 14:21:54.743752  1674 worker.cc:361] Train @ step 8200  Loss = 0.814426, accuracy = 0.716150
+E0409 14:21:56.978442  1674 worker.cc:361] Train @ step 8400  Loss = 0.806007, accuracy = 0.723550
+E0409 14:21:59.212851  1674 worker.cc:361] Train @ step 8600  Loss = 0.783653, accuracy = 0.730650
+E0409 14:22:01.447805  1674 worker.cc:361] Train @ step 8800  Loss = 0.798896, accuracy = 0.725200
+E0409 14:22:03.684697  1674 worker.cc:361] Train @ step 9000  Loss = 0.783873, accuracy = 0.731800
+E0409 14:22:05.918203  1674 worker.cc:361] Train @ step 9200  Loss = 0.786511, accuracy = 0.729600
+E0409 14:22:08.152746  1674 worker.cc:361] Train @ step 9400  Loss = 0.775192, accuracy = 0.733000
+E0409 14:22:10.387599  1674 worker.cc:361] Train @ step 9600  Loss = 0.755756, accuracy = 0.740650
+E0409 14:22:12.622269  1674 worker.cc:361] Train @ step 9800  Loss = 0.772824, accuracy = 0.733500
+E0409 14:22:14.858597  1674 worker.cc:361] Train @ step 10000  Loss = 0.755942, accuracy = 0.742900
+E0409 14:22:17.093221  1674 worker.cc:361] Train @ step 10200  Loss = 0.760685, accuracy = 0.738100
+E0409 14:22:19.328114  1674 worker.cc:361] Train @ step 10400  Loss = 0.749570, accuracy = 0.740800
+E0409 14:22:21.562741  1674 worker.cc:361] Train @ step 10600  Loss = 0.731756, accuracy = 0.750350
+E0409 14:22:23.797623  1674 worker.cc:361] Train @ step 10800  Loss = 0.749476, accuracy = 0.741250
+E0409 14:22:26.034039  1674 worker.cc:361] Train @ step 11000  Loss = 0.732196, accuracy = 0.751250
+E0409 14:22:28.266535  1674 worker.cc:361] Train @ step 11200  Loss = 0.738137, accuracy = 0.747150
+E0409 14:22:30.501576  1674 worker.cc:361] Train @ step 11400  Loss = 0.727247, accuracy = 0.749300
+E0409 14:22:32.736558  1674 worker.cc:361] Train @ step 11600  Loss = 0.709801, accuracy = 0.759600
+E0409 14:22:34.970975  1674 worker.cc:361] Train @ step 11800  Loss = 0.729101, accuracy = 0.749700
+E0409 14:22:37.207001  1674 worker.cc:361] Train @ step 12000  Loss = 0.713005, accuracy = 0.758500
+E0409 14:22:39.440186  1674 worker.cc:361] Train @ step 12200  Loss = 0.719245, accuracy = 0.755750
+E0409 14:22:41.674983  1674 worker.cc:361] Train @ step 12400  Loss = 0.709869, accuracy = 0.753950
+E0409 14:22:43.909878  1674 worker.cc:361] Train @ step 12600  Loss = 0.692749, accuracy = 0.766850
+E0409 14:22:46.145244  1674 worker.cc:361] Train @ step 12800  Loss = 0.712426, accuracy = 0.756950
+E0409 14:22:48.381858  1674 worker.cc:361] Train @ step 13000  Loss = 0.696613, accuracy = 0.763550
+E0409 14:22:50.614341  1674 worker.cc:361] Train @ step 13200  Loss = 0.703148, accuracy = 0.761300
+E0409 14:22:52.848410  1674 worker.cc:361] Train @ step 13400  Loss = 0.693676, accuracy = 0.760550
+E0409 14:22:55.083258  1674 worker.cc:361] Train @ step 13600  Loss = 0.676465, accuracy = 0.772950
+E0409 14:22:57.318871  1674 worker.cc:361] Train @ step 13800  Loss = 0.697438, accuracy = 0.761800
+E0409 14:22:59.554858  1674 worker.cc:361] Train @ step 14000  Loss = 0.681652, accuracy = 0.769100
+E0409 14:23:01.787824  1674 worker.cc:361] Train @ step 14200  Loss = 0.688263, accuracy = 0.766700
+E0409 14:23:04.021847  1674 worker.cc:361] Train @ step 14400  Loss = 0.679091, accuracy = 0.766200
+E0409 14:23:06.257464  1674 worker.cc:361] Train @ step 14600  Loss = 0.661573, accuracy = 0.776900
+E0409 14:23:08.493175  1674 worker.cc:361] Train @ step 14800  Loss = 0.682449, accuracy = 0.767500
+E0409 14:23:10.729306  1674 worker.cc:361] Train @ step 15000  Loss = 0.668183, accuracy = 0.773350
+E0409 14:23:12.962504  1674 worker.cc:361] Train @ step 15200  Loss = 0.674250, accuracy = 0.771800
+E0409 14:23:15.197638  1674 worker.cc:361] Train @ step 15400  Loss = 0.666274, accuracy = 0.770500
+E0409 14:23:17.431833  1674 worker.cc:361] Train @ step 15600  Loss = 0.648473, accuracy = 0.782050
+E0409 14:23:19.667621  1674 worker.cc:361] Train @ step 15800  Loss = 0.669691, accuracy = 0.772150
+E0409 14:23:21.904233  1674 worker.cc:361] Train @ step 16000  Loss = 0.655840, accuracy = 0.778600
+E0409 14:23:24.137424  1674 worker.cc:361] Train @ step 16200  Loss = 0.661912, accuracy = 0.775700
+E0409 14:23:26.372136  1674 worker.cc:361] Train @ step 16400  Loss = 0.654191, accuracy = 0.775400
+E0409 14:23:28.607414  1674 worker.cc:361] Train @ step 16600  Loss = 0.636050, accuracy = 0.786400
+E0409 14:23:30.841938  1674 worker.cc:361] Train @ step 16800  Loss = 0.656134, accuracy = 0.776650
+E0409 14:23:33.078418  1674 worker.cc:361] Train @ step 17000  Loss = 0.644042, accuracy = 0.781950
+E0409 14:23:35.310984  1674 worker.cc:361] Train @ step 17200  Loss = 0.649166, accuracy = 0.779450
+E0409 14:23:37.545542  1674 worker.cc:361] Train @ step 17400  Loss = 0.642505, accuracy = 0.779100
+E0409 14:23:39.780094  1674 worker.cc:361] Train @ step 17600  Loss = 0.625092, accuracy = 0.789450
+E0409 14:23:42.014474  1674 worker.cc:361] Train @ step 17800  Loss = 0.644337, accuracy = 0.780950
+E0409 14:23:44.251894  1674 worker.cc:361] Train @ step 18000  Loss = 0.633546, accuracy = 0.786200
+E0409 14:23:46.484743  1674 worker.cc:361] Train @ step 18200  Loss = 0.637413, accuracy = 0.784400
+E0409 14:23:48.718304  1674 worker.cc:361] Train @ step 18400  Loss = 0.631436, accuracy = 0.783250
+E0409 14:23:50.953065  1674 worker.cc:361] Train @ step 18600  Loss = 0.614255, accuracy = 0.794550
+E0409 14:23:53.188068  1674 worker.cc:361] Train @ step 18800  Loss = 0.634039, accuracy = 0.784900
+E0409 14:23:55.424151  1674 worker.cc:361] Train @ step 19000  Loss = 0.623698, accuracy = 0.789200
+E0409 14:23:57.657665  1674 worker.cc:361] Train @ step 19200  Loss = 0.626471, accuracy = 0.788550
+E0409 14:23:59.891965  1674 worker.cc:361] Train @ step 19400  Loss = 0.621730, accuracy = 0.786600
+E0409 14:24:02.126595  1674 worker.cc:361] Train @ step 19600  Loss = 0.605329, accuracy = 0.798000
+E0409 14:24:04.363323  1674 worker.cc:361] Train @ step 19800  Loss = 0.623761, accuracy = 0.787850
+E0409 14:24:06.604069  1674 worker.cc:361] Train @ step 20000  Loss = 0.614185, accuracy = 0.791800
+E0409 14:24:08.836472  1674 worker.cc:361] Train @ step 20200  Loss = 0.617285, accuracy = 0.791100
+E0409 14:24:11.070557  1674 worker.cc:361] Train @ step 20400  Loss = 0.612087, accuracy = 0.790200
+E0409 14:24:13.305714  1674 worker.cc:361] Train @ step 20600  Loss = 0.594946, accuracy = 0.800300
+E0409 14:24:15.541409  1674 worker.cc:361] Train @ step 20800  Loss = 0.615161, accuracy = 0.791950
+E0409 14:24:17.778228  1674 worker.cc:361] Train @ step 21000  Loss = 0.605512, accuracy = 0.793800
+E0409 14:24:20.012048  1674 worker.cc:361] Train @ step 21200  Loss = 0.608358, accuracy = 0.795350
+E0409 14:24:22.246943  1674 worker.cc:361] Train @ step 21400  Loss = 0.604502, accuracy = 0.794500
+E0409 14:24:24.481834  1674 worker.cc:361] Train @ step 21600  Loss = 0.587361, accuracy = 0.802650
+E0409 14:24:26.716810  1674 worker.cc:361] Train @ step 21800  Loss = 0.606731, accuracy = 0.795300
+E0409 14:24:28.952708  1674 worker.cc:361] Train @ step 22000  Loss = 0.597709, accuracy = 0.796650
+E0409 14:24:31.185331  1674 worker.cc:361] Train @ step 22200  Loss = 0.600608, accuracy = 0.795850
+E0409 14:24:33.420783  1674 worker.cc:361] Train @ step 22400  Loss = 0.595270, accuracy = 0.797700
+E0409 14:24:35.654822  1674 worker.cc:361] Train @ step 22600  Loss = 0.579391, accuracy = 0.804450
+E0409 14:24:37.889777  1674 worker.cc:361] Train @ step 22800  Loss = 0.598706, accuracy = 0.797500
+E0409 14:24:40.125948  1674 worker.cc:361] Train @ step 23000  Loss = 0.590049, accuracy = 0.800650
+E0409 14:24:42.359382  1674 worker.cc:361] Train @ step 23200  Loss = 0.592932, accuracy = 0.799350
+E0409 14:24:44.594030  1674 worker.cc:361] Train @ step 23400  Loss = 0.587732, accuracy = 0.800700
+E0409 14:24:46.828773  1674 worker.cc:361] Train @ step 23600  Loss = 0.572326, accuracy = 0.807650
+E0409 14:24:49.063416  1674 worker.cc:361] Train @ step 23800  Loss = 0.591337, accuracy = 0.800300
+E0409 14:24:51.300319  1674 worker.cc:361] Train @ step 24000  Loss = 0.583047, accuracy = 0.803500
+E0409 14:24:53.533232  1674 worker.cc:361] Train @ step 24200  Loss = 0.585738, accuracy = 0.801500
+E0409 14:24:55.767974  1674 worker.cc:361] Train @ step 24400  Loss = 0.580931, accuracy = 0.804450
+E0409 14:24:58.002997  1674 worker.cc:361] Train @ step 24600  Loss = 0.565073, accuracy = 0.810201
+E0409 14:25:00.238101  1674 worker.cc:361] Train @ step 24800  Loss = 0.584497, accuracy = 0.803550
+E0409 14:25:02.475947  1674 worker.cc:361] Train @ step 25000  Loss = 0.576419, accuracy = 0.805550
+E0409 14:25:04.709718  1674 worker.cc:361] Train @ step 25200  Loss = 0.579671, accuracy = 0.804850
+E0409 14:25:06.943987  1674 worker.cc:361] Train @ step 25400  Loss = 0.574121, accuracy = 0.807050
+E0409 14:25:09.179599  1674 worker.cc:361] Train @ step 25600  Loss = 0.558614, accuracy = 0.812600
+E0409 14:25:11.413815  1674 worker.cc:361] Train @ step 25800  Loss = 0.577509, accuracy = 0.806650
+E0409 14:25:13.649333  1674 worker.cc:361] Train @ step 26000  Loss = 0.570574, accuracy = 0.808100
+E0409 14:25:15.882614  1674 worker.cc:361] Train @ step 26200  Loss = 0.573034, accuracy = 0.806950
+E0409 14:25:18.116839  1674 worker.cc:361] Train @ step 26400  Loss = 0.568050, accuracy = 0.809350
+E0409 14:25:20.351188  1674 worker.cc:361] Train @ step 26600  Loss = 0.552556, accuracy = 0.815350
+E0409 14:25:22.586316  1674 worker.cc:361] Train @ step 26800  Loss = 0.571107, accuracy = 0.808850
+E0409 14:25:24.822087  1674 worker.cc:361] Train @ step 27000  Loss = 0.564568, accuracy = 0.809850
+E0409 14:25:27.056625  1674 worker.cc:361] Train @ step 27200  Loss = 0.566642, accuracy = 0.810650
+E0409 14:25:29.291023  1674 worker.cc:361] Train @ step 27400  Loss = 0.562280, accuracy = 0.811850
+E0409 14:25:31.525832  1674 worker.cc:361] Train @ step 27600  Loss = 0.546813, accuracy = 0.817650
+E0409 14:25:33.760853  1674 worker.cc:361] Train @ step 27800  Loss = 0.565344, accuracy = 0.811400
+E0409 14:25:35.996599  1674 worker.cc:361] Train @ step 28000  Loss = 0.559169, accuracy = 0.812600
+E0409 14:25:38.229259  1674 worker.cc:361] Train @ step 28200  Loss = 0.561826, accuracy = 0.812450
+E0409 14:25:40.463893  1674 worker.cc:361] Train @ step 28400  Loss = 0.556601, accuracy = 0.813900
+E0409 14:25:42.697372  1674 worker.cc:361] Train @ step 28600  Loss = 0.541353, accuracy = 0.820300
+E0409 14:25:44.932139  1674 worker.cc:361] Train @ step 28800  Loss = 0.559743, accuracy = 0.813350
+E0409 14:25:47.169215  1674 worker.cc:361] Train @ step 29000  Loss = 0.553629, accuracy = 0.815050
+E0409 14:25:49.401931  1674 worker.cc:361] Train @ step 29200  Loss = 0.556329, accuracy = 0.814300
+E0409 14:25:51.636741  1674 worker.cc:361] Train @ step 29400  Loss = 0.551463, accuracy = 0.816200
+E0409 14:25:53.871017  1674 worker.cc:361] Train @ step 29600  Loss = 0.536410, accuracy = 0.821500
+E0409 14:25:56.105000  1674 worker.cc:361] Train @ step 29800  Loss = 0.554127, accuracy = 0.815700
+E0409 14:25:58.341770  1674 worker.cc:361] Train @ step 30000  Loss = 0.549123, accuracy = 0.816250
+E0409 14:26:00.574445  1674 worker.cc:361] Train @ step 30200  Loss = 0.551352, accuracy = 0.816300
+E0409 14:26:02.809118  1674 worker.cc:361] Train @ step 30400  Loss = 0.546518, accuracy = 0.816950
+E0409 14:26:05.042441  1674 worker.cc:361] Train @ step 30600  Loss = 0.531568, accuracy = 0.822000
+E0409 14:26:07.278622  1674 worker.cc:361] Train @ step 30800  Loss = 0.548542, accuracy = 0.816950
+E0409 14:26:09.514269  1674 worker.cc:361] Train @ step 31000  Loss = 0.543938, accuracy = 0.817950
+E0409 14:26:11.746892  1674 worker.cc:361] Train @ step 31200  Loss = 0.546408, accuracy = 0.818400
+E0409 14:26:13.981225  1674 worker.cc:361] Train @ step 31400  Loss = 0.540845, accuracy = 0.818400
+E0409 14:26:16.215260  1674 worker.cc:361] Train @ step 31600  Loss = 0.526732, accuracy = 0.824600
+E0409 14:26:18.450646  1674 worker.cc:361] Train @ step 31800  Loss = 0.543022, accuracy = 0.819000
+E0409 14:26:20.686339  1674 worker.cc:361] Train @ step 32000  Loss = 0.539600, accuracy = 0.819350
+E0409 14:26:22.919008  1674 worker.cc:361] Train @ step 32200  Loss = 0.541602, accuracy = 0.819050
+E0409 14:26:25.153347  1674 worker.cc:361] Train @ step 32400  Loss = 0.536464, accuracy = 0.820800
+E0409 14:26:27.386832  1674 worker.cc:361] Train @ step 32600  Loss = 0.522129, accuracy = 0.825600
+E0409 14:26:29.621850  1674 worker.cc:361] Train @ step 32800  Loss = 0.538368, accuracy = 0.821250
+E0409 14:26:31.856775  1674 worker.cc:361] Train @ step 33000  Loss = 0.535060, accuracy = 0.820650
+E0409 14:26:34.089568  1674 worker.cc:361] Train @ step 33200  Loss = 0.536387, accuracy = 0.821900
+E0409 14:26:36.324157  1674 worker.cc:361] Train @ step 33400  Loss = 0.532012, accuracy = 0.821900
+E0409 14:26:38.557170  1674 worker.cc:361] Train @ step 33600  Loss = 0.517421, accuracy = 0.827750
+E0409 14:26:40.792261  1674 worker.cc:361] Train @ step 33800  Loss = 0.533424, accuracy = 0.822900
+E0409 14:26:43.027421  1674 worker.cc:361] Train @ step 34000  Loss = 0.530616, accuracy = 0.821750
+E0409 14:26:45.260043  1674 worker.cc:361] Train @ step 34200  Loss = 0.531686, accuracy = 0.823200
+E0409 14:26:47.496605  1674 worker.cc:361] Train @ step 34400  Loss = 0.527421, accuracy = 0.823650
+E0409 14:26:49.727862  1674 worker.cc:361] Train @ step 34600  Loss = 0.513276, accuracy = 0.828700
+E0409 14:26:51.959779  1674 worker.cc:361] Train @ step 34800  Loss = 0.529310, accuracy = 0.824100
+E0409 14:26:54.194177  1674 worker.cc:361] Train @ step 35000  Loss = 0.526140, accuracy = 0.823500
+E0409 14:26:56.423995  1674 worker.cc:361] Train @ step 35200  Loss = 0.527371, accuracy = 0.824200
+E0409 14:26:58.661960  1674 worker.cc:361] Train @ step 35400  Loss = 0.523390, accuracy = 0.824600
+E0409 14:27:00.893630  1674 worker.cc:361] Train @ step 35600  Loss = 0.509002, accuracy = 0.829750
+E0409 14:27:03.125424  1674 worker.cc:361] Train @ step 35800  Loss = 0.524997, accuracy = 0.826250
+E0409 14:27:05.359122  1674 worker.cc:361] Train @ step 36000  Loss = 0.522034, accuracy = 0.825000
+E0409 14:27:07.590088  1674 worker.cc:361] Train @ step 36200  Loss = 0.523147, accuracy = 0.826300
+E0409 14:27:09.821974  1674 worker.cc:361] Train @ step 36400  Loss = 0.519684, accuracy = 0.826100
+E0409 14:27:12.053638  1674 worker.cc:361] Train @ step 36600  Loss = 0.505187, accuracy = 0.830600
+E0409 14:27:14.285712  1674 worker.cc:361] Train @ step 36800  Loss = 0.520753, accuracy = 0.827500
+E0409 14:27:16.519968  1674 worker.cc:361] Train @ step 37000  Loss = 0.518500, accuracy = 0.825850
+E0409 14:27:18.753253  1674 worker.cc:361] Train @ step 37200  Loss = 0.518314, accuracy = 0.828500
+E0409 14:27:20.985319  1674 worker.cc:361] Train @ step 37400  Loss = 0.515674, accuracy = 0.828050
+E0409 14:27:23.216114  1674 worker.cc:361] Train @ step 37600  Loss = 0.500993, accuracy = 0.832350
+E0409 14:27:25.448031  1674 worker.cc:361] Train @ step 37800  Loss = 0.516160, accuracy = 0.829150
+E0409 14:27:27.681284  1674 worker.cc:361] Train @ step 38000  Loss = 0.514736, accuracy = 0.827300
+E0409 14:27:29.911232  1674 worker.cc:361] Train @ step 38200  Loss = 0.514257, accuracy = 0.830450
+E0409 14:27:32.143620  1674 worker.cc:361] Train @ step 38400  Loss = 0.511825, accuracy = 0.829150
+E0409 14:27:34.374308  1674 worker.cc:361] Train @ step 38600  Loss = 0.497406, accuracy = 0.833800
+E0409 14:27:36.607106  1674 worker.cc:361] Train @ step 38800  Loss = 0.512217, accuracy = 0.831150
+E0409 14:27:38.841176  1674 worker.cc:361] Train @ step 39000  Loss = 0.511292, accuracy = 0.828650
+E0409 14:27:41.071419  1674 worker.cc:361] Train @ step 39200  Loss = 0.510476, accuracy = 0.831150
+E0409 14:27:43.303483  1674 worker.cc:361] Train @ step 39400  Loss = 0.508472, accuracy = 0.830700
+E0409 14:27:45.536557  1674 worker.cc:361] Train @ step 39600  Loss = 0.494141, accuracy = 0.834850
+E0409 14:27:47.770465  1674 worker.cc:361] Train @ step 39800  Loss = 0.508740, accuracy = 0.832600
+E0409 14:27:50.003708  1674 worker.cc:361] Train @ step 40000  Loss = 0.507231, accuracy = 0.830550
+E0409 14:27:52.234016  1674 worker.cc:361] Train @ step 40200  Loss = 0.507171, accuracy = 0.832600
+E0409 14:27:54.466835  1674 worker.cc:361] Train @ step 40400  Loss = 0.504276, accuracy = 0.832250
+E0409 14:27:56.698093  1674 worker.cc:361] Train @ step 40600  Loss = 0.490056, accuracy = 0.836700
+E0409 14:27:58.929553  1674 worker.cc:361] Train @ step 40800  Loss = 0.504659, accuracy = 0.834400
+E0409 14:28:01.162883  1674 worker.cc:361] Train @ step 41000  Loss = 0.503568, accuracy = 0.831800
+E0409 14:28:03.393741  1674 worker.cc:361] Train @ step 41200  Loss = 0.503272, accuracy = 0.834050
+E0409 14:28:05.625697  1674 worker.cc:361] Train @ step 41400  Loss = 0.501056, accuracy = 0.832900
+E0409 14:28:07.857178  1674 worker.cc:361] Train @ step 41600  Loss = 0.487058, accuracy = 0.837600
+E0409 14:28:10.089124  1674 worker.cc:361] Train @ step 41800  Loss = 0.501293, accuracy = 0.835000
+E0409 14:28:12.322892  1674 worker.cc:361] Train @ step 42000  Loss = 0.500527, accuracy = 0.832900
+E0409 14:28:14.553771  1674 worker.cc:361] Train @ step 42200  Loss = 0.499093, accuracy = 0.835800
+E0409 14:28:16.785842  1674 worker.cc:361] Train @ step 42400  Loss = 0.497521, accuracy = 0.833900
+E0409 14:28:19.016614  1674 worker.cc:361] Train @ step 42600  Loss = 0.482822, accuracy = 0.839600
+E0409 14:28:21.248203  1674 worker.cc:361] Train @ step 42800  Loss = 0.497559, accuracy = 0.837300
+E0409 14:28:23.482066  1674 worker.cc:361] Train @ step 43000  Loss = 0.497598, accuracy = 0.834150
+E0409 14:28:25.711853  1674 worker.cc:361] Train @ step 43200  Loss = 0.495720, accuracy = 0.837150
+E0409 14:28:27.943776  1674 worker.cc:361] Train @ step 43400  Loss = 0.494071, accuracy = 0.835400
+E0409 14:28:30.175757  1674 worker.cc:361] Train @ step 43600  Loss = 0.479706, accuracy = 0.841000
+E0409 14:28:32.407686  1674 worker.cc:361] Train @ step 43800  Loss = 0.493850, accuracy = 0.838050
+E0409 14:28:34.641301  1674 worker.cc:361] Train @ step 44000  Loss = 0.494221, accuracy = 0.835750
+E0409 14:28:36.872284  1674 worker.cc:361] Train @ step 44200  Loss = 0.492244, accuracy = 0.837750
+E0409 14:28:39.104740  1674 worker.cc:361] Train @ step 44400  Loss = 0.490616, accuracy = 0.836200
+E0409 14:28:41.336446  1674 worker.cc:361] Train @ step 44600  Loss = 0.476395, accuracy = 0.841700
+E0409 14:28:43.567654  1674 worker.cc:361] Train @ step 44800  Loss = 0.490328, accuracy = 0.839100
+E0409 14:28:45.800762  1674 worker.cc:361] Train @ step 45000  Loss = 0.490821, accuracy = 0.836250
+E0409 14:28:48.031733  1674 worker.cc:361] Train @ step 45200  Loss = 0.488243, accuracy = 0.839200
+E0409 14:28:50.263869  1674 worker.cc:361] Train @ step 45400  Loss = 0.487792, accuracy = 0.837750
+E0409 14:28:52.495829  1674 worker.cc:361] Train @ step 45600  Loss = 0.472868, accuracy = 0.843700
+E0409 14:28:54.727347  1674 worker.cc:361] Train @ step 45800  Loss = 0.486600, accuracy = 0.840300
+E0409 14:28:56.959959  1674 worker.cc:361] Train @ step 46000  Loss = 0.487615, accuracy = 0.838650
+E0409 14:28:59.190698  1674 worker.cc:361] Train @ step 46200  Loss = 0.485106, accuracy = 0.839850
+E0409 14:29:01.422894  1674 worker.cc:361] Train @ step 46400  Loss = 0.484330, accuracy = 0.839000
+E0409 14:29:03.653862  1674 worker.cc:361] Train @ step 46600  Loss = 0.469912, accuracy = 0.844900
+E0409 14:29:05.885422  1674 worker.cc:361] Train @ step 46800  Loss = 0.483052, accuracy = 0.840900
+E0409 14:29:08.119055  1674 worker.cc:361] Train @ step 47000  Loss = 0.484842, accuracy = 0.838850
+E0409 14:29:10.349835  1674 worker.cc:361] Train @ step 47200  Loss = 0.481601, accuracy = 0.841700
+E0409 14:29:12.581995  1674 worker.cc:361] Train @ step 47400  Loss = 0.481480, accuracy = 0.839100
+E0409 14:29:14.814126  1674 worker.cc:361] Train @ step 47600  Loss = 0.466872, accuracy = 0.845950
+E0409 14:29:17.046437  1674 worker.cc:361] Train @ step 47800  Loss = 0.479997, accuracy = 0.841200
+E0409 14:29:19.279670  1674 worker.cc:361] Train @ step 48000  Loss = 0.481902, accuracy = 0.840000
+E0409 14:29:21.509966  1674 worker.cc:361] Train @ step 48200  Loss = 0.479021, accuracy = 0.842400
+E0409 14:29:23.742629  1674 worker.cc:361] Train @ step 48400  Loss = 0.478311, accuracy = 0.839250
+E0409 14:29:25.974378  1674 worker.cc:361] Train @ step 48600  Loss = 0.464628, accuracy = 0.846550
+E0409 14:29:28.205865  1674 worker.cc:361] Train @ step 48800  Loss = 0.476832, accuracy = 0.842700
+E0409 14:29:30.438719  1674 worker.cc:361] Train @ step 49000  Loss = 0.479230, accuracy = 0.840850
+E0409 14:29:32.669133  1674 worker.cc:361] Train @ step 49200  Loss = 0.476454, accuracy = 0.842900
+E0409 14:29:34.900864  1674 worker.cc:361] Train @ step 49400  Loss = 0.475704, accuracy = 0.840650
+E0409 14:29:37.131902  1674 worker.cc:361] Train @ step 49600  Loss = 0.461970, accuracy = 0.847500
+E0409 14:29:39.363452  1674 worker.cc:361] Train @ step 49800  Loss = 0.474290, accuracy = 0.842900
+E0409 14:29:41.596981  1674 worker.cc:361] Train @ step 50000  Loss = 0.476774, accuracy = 0.841900
+E0409 14:29:43.826402  1674 worker.cc:361] Train @ step 50200  Loss = 0.473600, accuracy = 0.843701
+E0409 14:29:46.058531  1674 worker.cc:361] Train @ step 50400  Loss = 0.473249, accuracy = 0.842450
+E0409 14:29:48.290019  1674 worker.cc:361] Train @ step 50600  Loss = 0.459254, accuracy = 0.849450
+E0409 14:29:50.520659  1674 worker.cc:361] Train @ step 50800  Loss = 0.471646, accuracy = 0.844000
+E0409 14:29:52.754619  1674 worker.cc:361] Train @ step 51000  Loss = 0.474043, accuracy = 0.842500
+E0409 14:29:54.984911  1674 worker.cc:361] Train @ step 51200  Loss = 0.471015, accuracy = 0.845200
+E0409 14:29:57.216421  1674 worker.cc:361] Train @ step 51400  Loss = 0.470484, accuracy = 0.843200
+E0409 14:29:59.448428  1674 worker.cc:361] Train @ step 51600  Loss = 0.456611, accuracy = 0.850150
+E0409 14:30:01.679226  1674 worker.cc:361] Train @ step 51800  Loss = 0.469548, accuracy = 0.844450
+E0409 14:30:03.912381  1674 worker.cc:361] Train @ step 52000  Loss = 0.471521, accuracy = 0.844000
+E0409 14:30:06.143167  1674 worker.cc:361] Train @ step 52200  Loss = 0.468586, accuracy = 0.846251
+E0409 14:30:08.375548  1674 worker.cc:361] Train @ step 52400  Loss = 0.467865, accuracy = 0.844150
+E0409 14:30:10.607911  1674 worker.cc:361] Train @ step 52600  Loss = 0.453993, accuracy = 0.850900
+E0409 14:30:12.838729  1674 worker.cc:361] Train @ step 52800  Loss = 0.466658, accuracy = 0.845150
+E0409 14:30:15.070864  1674 worker.cc:361] Train @ step 53000  Loss = 0.469223, accuracy = 0.844900
+E0409 14:30:17.301681  1674 worker.cc:361] Train @ step 53200  Loss = 0.465654, accuracy = 0.847350
+E0409 14:30:19.533501  1674 worker.cc:361] Train @ step 53400  Loss = 0.465812, accuracy = 0.844850
+E0409 14:30:21.765053  1674 worker.cc:361] Train @ step 53600  Loss = 0.451171, accuracy = 0.852701
+E0409 14:30:23.997748  1674 worker.cc:361] Train @ step 53800  Loss = 0.464210, accuracy = 0.846550
+E0409 14:30:26.230214  1674 worker.cc:361] Train @ step 54000  Loss = 0.466585, accuracy = 0.846100
+E0409 14:30:28.460160  1674 worker.cc:361] Train @ step 54200  Loss = 0.463326, accuracy = 0.847950
+E0409 14:30:30.693109  1674 worker.cc:361] Train @ step 54400  Loss = 0.463210, accuracy = 0.845650
+E0409 14:30:32.924167  1674 worker.cc:361] Train @ step 54600  Loss = 0.449101, accuracy = 0.853600
+E0409 14:30:35.155623  1674 worker.cc:361] Train @ step 54800  Loss = 0.462174, accuracy = 0.846100
+E0409 14:30:37.389382  1674 worker.cc:361] Train @ step 55000  Loss = 0.464455, accuracy = 0.846900
+E0409 14:30:39.619438  1674 worker.cc:361] Train @ step 55200  Loss = 0.461281, accuracy = 0.847450
+E0409 14:30:41.851826  1674 worker.cc:361] Train @ step 55400  Loss = 0.461261, accuracy = 0.845950
+E0409 14:30:44.083088  1674 worker.cc:361] Train @ step 55600  Loss = 0.446820, accuracy = 0.854400
+E0409 14:30:46.314085  1674 worker.cc:361] Train @ step 55800  Loss = 0.459905, accuracy = 0.847150
+E0409 14:30:48.547719  1674 worker.cc:361] Train @ step 56000  Loss = 0.462504, accuracy = 0.847950
+E0409 14:30:50.777137  1674 worker.cc:361] Train @ step 56200  Loss = 0.459076, accuracy = 0.848550
+E0409 14:30:53.009222  1674 worker.cc:361] Train @ step 56400  Loss = 0.459071, accuracy = 0.847250
+E0409 14:30:55.241403  1674 worker.cc:361] Train @ step 56600  Loss = 0.444905, accuracy = 0.854150
+E0409 14:30:57.471621  1674 worker.cc:361] Train @ step 56800  Loss = 0.457797, accuracy = 0.848250
+E0409 14:30:59.703838  1674 worker.cc:361] Train @ step 57000  Loss = 0.460609, accuracy = 0.848150
+E0409 14:31:01.934016  1674 worker.cc:361] Train @ step 57200  Loss = 0.457120, accuracy = 0.848950
+E0409 14:31:04.166122  1674 worker.cc:361] Train @ step 57400  Loss = 0.457475, accuracy = 0.848400
+E0409 14:31:06.397491  1674 worker.cc:361] Train @ step 57600  Loss = 0.442896, accuracy = 0.855500
+E0409 14:31:08.629649  1674 worker.cc:361] Train @ step 57800  Loss = 0.455952, accuracy = 0.849000
+E0409 14:31:10.861860  1674 worker.cc:361] Train @ step 58000  Loss = 0.458595, accuracy = 0.849600
+E0409 14:31:13.091724  1674 worker.cc:361] Train @ step 58200  Loss = 0.455103, accuracy = 0.850650
+E0409 14:31:15.323604  1674 worker.cc:361] Train @ step 58400  Loss = 0.455252, accuracy = 0.848800
+E0409 14:31:17.555210  1674 worker.cc:361] Train @ step 58600  Loss = 0.440507, accuracy = 0.855700
+E0409 14:31:19.785835  1674 worker.cc:361] Train @ step 58800  Loss = 0.453848, accuracy = 0.849400
+E0409 14:31:22.017683  1674 worker.cc:361] Train @ step 59000  Loss = 0.455823, accuracy = 0.851000
+E0409 14:31:24.247407  1674 worker.cc:361] Train @ step 59200  Loss = 0.453246, accuracy = 0.851550
+E0409 14:31:26.479025  1674 worker.cc:361] Train @ step 59400  Loss = 0.452433, accuracy = 0.850300
+E0409 14:31:28.709965  1674 worker.cc:361] Train @ step 59600  Loss = 0.438344, accuracy = 0.857400
+E0409 14:31:30.941382  1674 worker.cc:361] Train @ step 59800  Loss = 0.451838, accuracy = 0.850600
+E0409 14:31:33.174355  1674 worker.cc:361] Train @ step 60000  Loss = 0.453574, accuracy = 0.852650
+E0409 14:31:35.403815  1674 worker.cc:361] Train @ step 60200  Loss = 0.435233, accuracy = 0.855550
+E0409 14:31:37.636400  1674 worker.cc:361] Train @ step 60400  Loss = 0.401613, accuracy = 0.869950
+E0409 14:31:39.867877  1674 worker.cc:361] Train @ step 60600  Loss = 0.378201, accuracy = 0.879200
+E0409 14:31:42.099926  1674 worker.cc:361] Train @ step 60800  Loss = 0.398689, accuracy = 0.868700
+E0409 14:31:44.332603  1674 worker.cc:361] Train @ step 61000  Loss = 0.390350, accuracy = 0.874600
+E0409 14:31:46.563175  1674 worker.cc:361] Train @ step 61200  Loss = 0.399830, accuracy = 0.868600
+E0409 14:31:48.794967  1674 worker.cc:361] Train @ step 61400  Loss = 0.394379, accuracy = 0.872400
+E0409 14:31:51.026139  1674 worker.cc:361] Train @ step 61600  Loss = 0.383800, accuracy = 0.876250
+E0409 14:31:53.258564  1674 worker.cc:361] Train @ step 61800  Loss = 0.394482, accuracy = 0.870700
+E0409 14:31:55.491170  1674 worker.cc:361] Train @ step 62000  Loss = 0.393062, accuracy = 0.873650
+E0409 14:31:57.720543  1674 worker.cc:361] Train @ step 62200  Loss = 0.397100, accuracy = 0.870100
+E0409 14:31:59.952761  1674 worker.cc:361] Train @ step 62400  Loss = 0.392365, accuracy = 0.873050
+E0409 14:32:02.184298  1674 worker.cc:361] Train @ step 62600  Loss = 0.383638, accuracy = 0.876150
+E0409 14:32:04.415987  1674 worker.cc:361] Train @ step 62800  Loss = 0.391859, accuracy = 0.872250
+E0409 14:32:06.648980  1674 worker.cc:361] Train @ step 63000  Loss = 0.392381, accuracy = 0.872750
+E0409 14:32:08.878957  1674 worker.cc:361] Train @ step 63200  Loss = 0.394778, accuracy = 0.871100
+E0409 14:32:11.110887  1674 worker.cc:361] Train @ step 63400  Loss = 0.390459, accuracy = 0.873450
+E0409 14:32:13.341949  1674 worker.cc:361] Train @ step 63600  Loss = 0.382332, accuracy = 0.876400
+E0409 14:32:15.573469  1674 worker.cc:361] Train @ step 63800  Loss = 0.389718, accuracy = 0.873150
+E0409 14:32:17.806725  1674 worker.cc:361] Train @ step 64000  Loss = 0.391086, accuracy = 0.872700
+E0409 14:32:20.036375  1674 worker.cc:361] Train @ step 64200  Loss = 0.392829, accuracy = 0.872300
+E0409 14:32:22.267868  1674 worker.cc:361] Train @ step 64400  Loss = 0.388764, accuracy = 0.873850
+E0409 14:32:24.499608  1674 worker.cc:361] Train @ step 64600  Loss = 0.380894, accuracy = 0.876800
+E0409 14:32:26.731564  1674 worker.cc:361] Train @ step 64800  Loss = 0.387874, accuracy = 0.873750
+E0409 14:32:28.964419  1674 worker.cc:361] Train @ step 65000  Loss = 0.389770, accuracy = 0.873500
+E0409 14:32:31.194614  1674 worker.cc:361] Train @ step 65200  Loss = 0.386855, accuracy = 0.873750
+E0409 14:32:33.426509  1674 worker.cc:361] Train @ step 65400  Loss = 0.370673, accuracy = 0.882650
+E0409 14:32:35.657621  1674 worker.cc:361] Train @ step 65600  Loss = 0.362885, accuracy = 0.884650
+E0409 14:32:37.889570  1674 worker.cc:361] Train @ step 65800  Loss = 0.374139, accuracy = 0.877350
+E0409 14:32:40.122159  1674 worker.cc:361] Train @ step 66000  Loss = 0.365738, accuracy = 0.886350
+E0409 14:32:42.355268  1674 worker.cc:361] Train @ step 66200  Loss = 0.380091, accuracy = 0.875850
+E0409 14:32:44.587406  1674 worker.cc:361] Train @ step 66400  Loss = 0.369280, accuracy = 0.882450
+E0409 14:32:46.818759  1674 worker.cc:361] Train @ step 66600  Loss = 0.363280, accuracy = 0.885100
+E0409 14:32:49.050925  1674 worker.cc:361] Train @ step 66800  Loss = 0.372549, accuracy = 0.878350
+E0409 14:32:51.284073  1674 worker.cc:361] Train @ step 67000  Loss = 0.367391, accuracy = 0.884900
+E0409 14:32:53.514035  1674 worker.cc:361] Train @ step 67200  Loss = 0.378799, accuracy = 0.876650
+E0409 14:32:55.746440  1674 worker.cc:361] Train @ step 67400  Loss = 0.369515, accuracy = 0.882550
+E0409 14:32:57.978049  1674 worker.cc:361] Train @ step 67600  Loss = 0.363781, accuracy = 0.884050
+E0409 14:33:00.210412  1674 worker.cc:361] Train @ step 67800  Loss = 0.372063, accuracy = 0.878900
+E0409 14:33:02.443975  1674 worker.cc:361] Train @ step 68000  Loss = 0.368611, accuracy = 0.884000
+E0409 14:33:04.673494  1674 worker.cc:361] Train @ step 68200  Loss = 0.378187, accuracy = 0.876800
+E0409 14:33:06.905566  1674 worker.cc:361] Train @ step 68400  Loss = 0.369893, accuracy = 0.882600
+E0409 14:33:09.138393  1674 worker.cc:361] Train @ step 68600  Loss = 0.364145, accuracy = 0.883950
+E0409 14:33:11.369985  1674 worker.cc:361] Train @ step 68800  Loss = 0.371866, accuracy = 0.879550
+E0409 14:33:13.603677  1674 worker.cc:361] Train @ step 69000  Loss = 0.369497, accuracy = 0.883450
+E0409 14:33:15.833866  1674 worker.cc:361] Train @ step 69200  Loss = 0.377825, accuracy = 0.877300
+E0409 14:33:18.064680  1674 worker.cc:361] Train @ step 69400  Loss = 0.370215, accuracy = 0.882550
+E0409 14:33:20.296680  1674 worker.cc:361] Train @ step 69600  Loss = 0.364422, accuracy = 0.883800
+E0409 14:33:22.529152  1674 worker.cc:361] Train @ step 69800  Loss = 0.371755, accuracy = 0.879600
+I0409 14:33:24.749711  1674 worker.cc:273] checkpoint to examples/cifar10/checkpoint/step70000-worker0
+E0409 14:33:24.750255  1674 worker.cc:123] Worker (group = 0, id = 0) stops
+E0409 14:33:24.750406  1643 stub.cc:175] Stub in process 0 stops
+E0409 14:33:25.750478  1673 server.cc:123] Server (group = 0, id = 0) stops
